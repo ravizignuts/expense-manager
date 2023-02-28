@@ -22,9 +22,7 @@ class User extends Authenticatable
         'lastname',
         'email',
         'phone',
-        'password',
-        'account_name',
-        'account_number'
+        'password'
     ];
 
     /**
@@ -45,4 +43,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    /**
+     * Define has Many Relation with Account model
+     */
+    public function accounts(){
+        return $this->hasMany(Account::class,'user_id','id');
+    }
 }
