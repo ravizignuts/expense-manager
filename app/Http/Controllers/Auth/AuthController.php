@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -23,14 +25,17 @@ class AuthController extends Controller
             'lastname'       => 'required|string',
             'email'          => 'required|email|unique:users,email',
             'phone'          => 'required|max:10',
-            'password'       => 'required|min:8|',
+            'password'       => 'required|min:8|max:12',
             'account_number' => 'required|min:11|max:16'
         ]);
 
         $request['password'] = Hash::make($request->password);
         $request->request->add(['account_name' => $request['firstname'] ." ". $request['lastname']]);
+        // $user = $request->all();
         $user = User::create($request->only('firstname', 'lastname', 'email', 'phone', 'password', 'account_name', 'account_number'));
         $success['token'] = $user->createToken('MyApp')->plainTextToken;
+        // return (new WelcomeMail($user))->render();
+        Mail::to($user)->queue(new WelcomeMail($user));
         return response()->json([
             'success' => True,
             'data'    => $success,
