@@ -57,7 +57,7 @@ class TransactionController extends Controller
             ]);
         }
         $transaction = Transaction::findOrFail($id);
-        $transaction->update('account_id','account_user_id','type','date','category','amount');
+        $transaction->update($request->only('account_id','account_user_id','type','date','category','amount'));
         return response()->json([
             'success'     => true,
             'transaction' => $transaction
@@ -68,16 +68,25 @@ class TransactionController extends Controller
      * @param $id
      * @return json Data
      */
-    public function delete(){
-
+    public function delete($id){
+        $transaction = Transaction::findOrFail($id);
+        $transaction->delete();
+        return response()->json([
+            'message'       => 'Deleted Transaction',
+            'Transaction'   => $transaction
+        ]);
     }
     /**
      * API for add Transaction
      * @param $id
      * @return json Data
      */
-    public function get(){
-
+    public function get($id){
+        $transaction = Transaction::with('user')->findOrFail($id);
+        return response()->json([
+            'message'       => 'All Transaction',
+            'Transaction'   => $transaction
+        ]);
     }
     /**
      * API for list Transaction

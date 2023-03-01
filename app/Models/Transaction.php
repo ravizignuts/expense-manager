@@ -16,4 +16,7 @@ class Transaction extends Model
         'category',
         'amount'
     ];
+    public function user(){
+        return $this->belongsTo(AccountUser::class,'account_user_id');
+    }
 }
