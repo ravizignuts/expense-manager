@@ -14,5 +14,7 @@ class AccountUser extends Model
         'last_name',
         'email'
     ];
-
+    public function transactions(){
+        return $this->hasMany(Transaction::class,'account_user_id');
+    }
 }

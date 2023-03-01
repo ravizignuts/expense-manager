@@ -15,108 +15,97 @@ class AccountController extends Controller
      * @param Request $request
      * @return Json data
      */
-    public function create(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function add(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'account_name' => 'required|string',
             'account_number'  => 'required|min:11|max:16|unique:accounts,account_number',
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => $validator->errors(),
             ]);
         }
         $user = Auth::user();
-        $request->request->add(['user_id'=>$user->id]);
-        $account = Account::create($request->only('user_id','account_name','account_number'));
+        $request->request->add(['user_id' => $user->id]);
+        $account = Account::create($request->only('user_id', 'account_name', 'account_number'));
         return response()->json([
             'message' => true,
             'data'    => $account
         ]);
     }
-    /**
-     * API For Add Account
-     * @param Request $request
-     * @return Json data
-     */
-    public function add(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'account_id' => 'required|numeric|exists:accounts,id',
-            'emails'     => 'required|array',
-            'emails.*'   => 'required|email|exists:users,email|unique:account_users,email'
-        ]);
-        if($validator->fails()){
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors(),
-            ]);
-        }
-        // $emails = $request->emails;
-        // $account = Account::findOrFail($request->account_id);
-        // foreach($emails as $email){
-        //         $user = User::where('email',$email)->first();
-        //         $account = Account::findOrFail($request->account_id);
-        //         $account = $account->accountUsers()->updateOrCreate([
-        //             'first_name' => $user->firstname,
-        //             'last_name'  => $user->lastname,
-        //             'email'      => $user->email
-        //         ]);
-        // }
-        $user = User::where('email',$request->email)->first();
-        $account = Account::findOrFail($request->account_id);
-        $account = $account->accountUsers()->create([
-            'first_name' => $user->firstname,
-            'last_name'  => $user->lastname,
-            'email'      => $user->email
-        ]);
 
-        // return response()->json([
-        //     'success' => true,
-        //     'message' => 'User Added Successfully',
-        //     'data'    => $account
-
-        // ]);
-    }
     /**
-     * API For Add Account
+     * API For edit Account
      * @param Request $request
      * @return Json data
      */
     public function edit(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'id'           => 'required|exists:accounts,id',
+            'account_name' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message'  => $validator->errors()
+            ]);
+        }
+        $account = Account::findOrFail($request->id);
+        if ($account->user_id == Auth::user()->id) {
+            $account->update($request->only('account_name'));
+            return response()->json([
+                'success' => true,
+                'data'    => $account,
+                'message' => 'Account Updated Successfuly'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can not make changes in this account'
+            ]);
+        }
     }
     /**
-     * API For Add Account
+     * API For Delete Account
      * @param $id
      * @return Json data
      */
     public function delete($id)
     {
+        $account = Account::with('accountUsers')->findOrFail($id);
+        $account->delete();
+        return response()->json([
+            'Data'    => $account,
+            'message' => 'Account Deleted'
+        ]);
     }
     /**
-     * API For Add Account
-     * @param $id
-     * @return Json data
-     */
-    public function view($id)
-    {
-    $account = Account::with('accountUsers')->findOrFail($id)->get();
-    return response()->json([
-        'Data'    => $account,
-        'message' =>'All Account'
-    ]);
-    }
-    /**
-     * API For Add Account
+     * API For list of accounts for the logged in user
      * @return Json data
      */
     public function list()
     {
-    $account = Account::where('user_id',Auth::user()->id)->get();
-    return response()->json([
-        'Data'    => $account,
-        'message' =>'All Account'
-    ]);
+        $user_id = Auth::user()->id;
+        $account = Account::where('user_id', $user_id)->get();
+        return response()->json([
+            'Data'    => $account,
+            'message' => 'All Account'
+        ]);
+    }
+    /**
+     * API For get Account
+     * @param $id
+     * @return Json data
+     */
+    public function get($id)
+    {
+        $account = Account::with('accountUsers')->findOrFail($id);
+        return response()->json([
+            'Data'    => $account,
+            'message' => 'All Account'
+        ]);
     }
 }

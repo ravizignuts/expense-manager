@@ -36,8 +36,6 @@ class AuthController extends Controller
         }
         $request['password'] = Hash::make($request->password);
         $user = User::create($request->only('firstname', 'lastname', 'email', 'phone', 'password'));
-        $success['token'] = $user->createToken('MyApp')->plainTextToken;
-
         //Mail::to($user)->queue(new WelcomeMail($user));
 
         $request->request->add(['account_name' => $request['firstname'] ." ". $request['lastname']]);
@@ -45,8 +43,8 @@ class AuthController extends Controller
         $user->accounts()->create($request->only('account_name','account_number','is_default'));
         return response()->json([
             'success' => True,
-            'data'    => $success,
-            'user'    => $user
+            'user'    => $user,
+            'message' => 'Mail has been sent to your Email !Please veify your Account'
         ]);
     }
     /**
@@ -57,7 +55,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'      => 'string|required|email',
+            'email'      => 'required|email|exists:users,email',
             'password'   => 'string|min:8|max:20'
         ]);
         if ($validator->fails()) {
@@ -71,6 +69,7 @@ class AuthController extends Controller
 
             /** @var \App\Models\User $user **/
             $user = Auth::user();
+            // dd($user);
             $success['token'] = $user->createToken('MyApp')->plainTextToken;
             $response = [
                 'success' => true,
@@ -88,12 +87,11 @@ class AuthController extends Controller
     }
     /**
      * API for Logout user
-     * @param  Request $request
      * @return json data
      */
-    public function logout(Request $request){
-        $user = User::findOrFail($request->id);
-        $request->user()->currentAccessToken()->delete();
+    public function logout(){
+        $user = Auth::user();
+        $user->currentAccessToken()->delete();
         return response()->json([
             'success' => true,
             'user'    => $user,
