@@ -19,7 +19,7 @@ class AccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'account_name' => 'required|string',
-            'account_number'  => 'required|min:11|max:16|unique:accounts,account_number',
+            'account_number'  => 'required|min:10|max:10|unique:accounts,account_number',
         ]);
         if ($validator->fails()) {
             return response()->json([

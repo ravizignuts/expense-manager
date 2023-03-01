@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeeder extends Seeder
 {
@@ -21,27 +22,33 @@ class UserSeeder extends Seeder
         // ]);
         //
             \App\Models\User::factory()->create([
-                'firstname'      => 'Ravi',
-                'lastname'       => 'Thakor',
-                'email'          => 'ravit@gmail.com',
-                'type'           => 'admin',
-                'password'       => Hash::make('ravi1234'),
+                'firstname'                => 'Ravi',
+                'lastname'                 => 'Thakor',
+                'email'                    => 'ravit@gmail.com',
+                'type'                     => 'admin',
+                'is_onbord'                => true,
+                'password'                 => Hash::make('ravi1234'),
+                'email_verification_token' => Str::random(64),
                 // 'account_name'   => 'Ravi Thakor',
                 // 'account_number' => '885557695091'
             ]);
             \App\Models\User::factory()->create([
-                'firstname'      => 'Dinesh',
-                'lastname'       => 'Prajapti',
-                'email'          => 'dineshp@gmail.com',
-                'type'           => 'admin',
-                'password'       => Hash::make('dinesh12'),
+                'firstname'                => 'Dinesh',
+                'lastname'                 => 'Prajapti',
+                'email'                    => 'dineshp@gmail.com',
+                'type'                     => 'admin',
+                'is_onbord'                => true,
+                'password'                 => Hash::make('dinesh12'),
+                'email_verification_token' => Str::random(64),
             ]);
             \App\Models\User::factory()->create([
-                'firstname'      => 'Bhawik',
-                'lastname'       => 'Padhiaar',
-                'email'          => 'bhawikp@gmail.com',
-                'type'           => 'admin',
-                'password'       => Hash::make('bhawik12'),
+                'firstname'                => 'Bhawik',
+                'lastname'                 => 'Padhiaar',
+                'email'                    => 'bhawikp@gmail.com',
+                'type'                     => 'admin',
+                'is_onbord'                => true,
+                'password'                 => Hash::make('bhawik12'),
+                'email_verification_token' => Str::random(64),
             ]);
     }
 }

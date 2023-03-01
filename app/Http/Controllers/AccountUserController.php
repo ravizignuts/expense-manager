@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Account;
+use App\Models\AccountUser;
+use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -29,7 +31,6 @@ class AccountUserController extends Controller
         }
         $user = User::where('email',$request->email)->first();
         $account = Account::findOrFail($request->account_id);
-        // dd($account);
         if($account->user_id == Auth::user()->id){
             $account = $account->accountUsers()->create([
                 'first_name' => $user->firstname,
@@ -54,26 +55,62 @@ class AccountUserController extends Controller
      * @param Request $request
      * @return Json data
      */
-    public function editUser(){
-
+    public function edit(Request $request){
     }
     /**
-     * API For delete account
+     * API For delete user account
      * @param Request $request
      * @return Json data
      */
-    public function deleteUser(){
-
-    }
-    public function get(){
-
+    public function delete(Request $request){
+        $validator = Validator::make($request->all(),[
+            'account_id' => 'required|numeric|exists:accounts,id',
+            'email'      => 'required|email|exists:account_users,email'
+        ]);
+        if($validator->fails()){
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors(),
+            ]);
+        }
+        $account = Account::findOrFail($request->account_id);
+        if($account->user_id == Auth::user()->id){
+            $accountuser = AccountUser::where('account_id',$request->account_id)->where('email',$request->email)->first();
+            $accountuser->delete();
+            return response()->json([
+                    'Success' => true,
+                    'message' => 'Deleted Record',
+                    'data'    => $accountuser
+                ]);
+        }
+        else{
+            return response()->json([
+                'success' => false,
+                'message' => 'You can not make changes in this account'
+            ]);
+        }
     }
     /**
-     * API For Update User In Account
-     * @param Request $request
+     * API For list User In Account
+     * @param $id
+     * @return Json data
+     */
+    public function get($account_id){
+        $account = AccountUser::with('transactions')->where('account_id',$account_id);
+        return response()->json([
+            'message' => 'Account Transaction',
+            'account' => $account
+        ]);
+    }
+    /**
+     * API For list User In Account
      * @return Json data
      */
     public function list(){
-
+        $accounts = AccountUser::get();
+        return response()->json([
+            'message'       => 'Account Users',
+            'account users' => $accounts
+        ]);
     }
 }

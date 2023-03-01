@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('account_user_id');
             $table->foreign('account_user_id')->references('id')->on('account_users')->onDelete('cascade');;
             $table->enum('type',['income','expense','transfer']);
+            $table->date('date');
             $table->string('category');
             $table->string('amount');
             $table->timestamps();
