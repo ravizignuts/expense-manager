@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::controller(AuthController::class)->prefix('auth')->group(function(){
     Route::post('register','register');
     Route::post('login','login');
-    Route::patch('verifyuser/{token}','verifyuser');
+    Route::patch('verifyuser/{token}/{is_register}','verifyuser');
     Route::prefix('password')->group(function(){
         Route::patch('change','change')->middleware('auth:sanctum');
         Route::patch('forgotmail','forgotmail');

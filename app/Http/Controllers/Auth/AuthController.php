@@ -31,7 +31,6 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             $response = [
-                'success' => false,
                 'message' => $validator->errors(),
             ];
             return response()->json($response, 400);
@@ -39,53 +38,16 @@ class AuthController extends Controller
         $request['password'] = Hash::make($request->password);
         $token = Str::random(64);
         $request->request->add(['email_verification_token' => $token]);
-
         $user = User::create($request->only('firstname', 'lastname', 'email', 'phone', 'password', 'email_verification_token'));
-        $user->notify(new VerifyUser($user));
+        $is_register = 'yes';
+        $user->notify(new VerifyUser($user,$is_register));
         //Mail::to($user)->queue(new WelcomeMail($user));
         return response()->json([
             'message' => 'Mail has been sent to your Email !Please veify your Account'
         ]);
     }
     /**
-     * API For Register User
-     * @param $token
-     * @return json Data
-     */
-    public function verifyuser($token)
-    {
-        $verifyuser = User::where('email_verification_token', $token)->first();
-        if (!is_null($verifyuser)) {
-            if ($verifyuser->is_onbord == true) {
-                $verifyuser->email_verification_token = null;
-                $verifyuser->save();
-                return response()->json([
-                    'message' => 'Your email is Alreay verified'
-                ]);
-            } else {
-                $verifyuser->email_verification_token = null;
-                $verifyuser->is_onbord = true;
-                $verifyuser->save();
-                $account_name   = $verifyuser->firstname . ' ' . $verifyuser->lastname;
-                $account_number = random_int(0000000000, 9999999999);
-                $verifyuser->accounts()->create([
-                    'account_name'   => $account_name,
-                    'account_number' => $account_number,
-                    'is_default'     => true
-                ]);
-                return response()->json([
-                    'message' => 'Your email is verify You Can now Login'
-                ]);
-            }
-        } else {
-            return response()->json([
-                'message' => 'Your Token is not allowed'
-            ]);
-        }
-    }
-
-    /**
-     * API For Register User
+     * API For Login User
      * @param Request $request
      * @return json Data
      */
@@ -97,7 +59,6 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             $response = [
-                'success' => false,
                 'message' => $validator->errors(),
             ];
             return response()->json($response, 400);
@@ -108,20 +69,17 @@ class AuthController extends Controller
                 $user = Auth::user();
                 $success['token'] = $user->createToken('MyApp')->plainTextToken;
                 $response = [
-                    'success' => true,
                     'data'    => $success,
                     'message' => 'User Login Successfully'
                 ];
                 return response()->json($response, 200);
             } else {
                 return response()->json([
-                    'succes'  => false,
                     'message' => 'Your email is not verified'
                 ]);
             }
         } else {
             return response()->json([
-                'success' => false,
                 'message' => 'User Credentials are Invalid'
             ]);
         }
@@ -135,7 +93,6 @@ class AuthController extends Controller
         $user = Auth::user();
         $user->currentAccessToken()->delete();
         return response()->json([
-            'success' => true,
             'user'    => $user['firstname'],
             'message' => 'User Logout'
         ]);
@@ -153,13 +110,11 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors()
             ]);
         }
         if (!Hash::check($request->old_password, Auth::user()->password)) {
             return response()->json([
-                'success' => false,
                 'message' => 'Password is not Matched'
             ]);
         }
@@ -167,7 +122,6 @@ class AuthController extends Controller
             'password' => Hash::make($request->new_password)
         ]);
         return response()->json([
-            'success' => true,
             'Message' => 'Password updated successfully'
         ]);
     }
@@ -183,16 +137,15 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors()
             ]);
         }
         $user = User::where('email', $request->email)->first();
         $token = Str::random(64);
         $user->update(['email_verification_token' => $token]);
-        $user->notify(new ChangePassword($user));
+        $is_register = 'no';
+        $user->notify(new VerifyUser($user,$is_register));
         return response()->json([
-            'success' => true,
             'message' => 'Please Check your email reset password from the link'
         ]);
     }
@@ -209,7 +162,6 @@ class AuthController extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors()
             ]);
         }
@@ -220,12 +172,10 @@ class AuthController extends Controller
             $user->password = Hash::make($request->new_password);
             $user->save();
             return response()->json([
-                'success' => true,
                 'message' => 'Your Password is change now you can login with new password'
             ]);
         } else {
             return response()->json([
-                'success' => false,
                 'message' => 'Your Email is not verified for reset password'
             ]);
         }
@@ -233,20 +183,42 @@ class AuthController extends Controller
     /**
      * API For Email verification for password reset
      * @param $token
-     * @return json data
+     * @return json Data
      */
-    public function verifyEmail($token)
+    public function verifyuser($token,$is_register)
     {
         $verifyuser = User::where('email_verification_token', $token)->first();
         if (!is_null($verifyuser)) {
-            $verifyuser->is_email_verify = true;
-            $verifyuser->save();
-            return response()->json([
-                'message' => 'Your Token verified now you can change your password'
-            ]);
+            if($is_register == 'yes'){
+                if ($verifyuser->is_onbord == true) {
+                    return response()->json([
+                        'message' => 'Your email is Alreay verified'
+                    ]);
+                } else {
+                    $verifyuser->email_verification_token = null;
+                    $verifyuser->is_onbord = true;
+                    $verifyuser->save();
+                    $account_name   = $verifyuser->firstname . ' ' . $verifyuser->lastname;
+                    $account_number = random_int(0000000000, 9999999999);
+                    $verifyuser->accounts()->create([
+                        'account_name'   => $account_name,
+                        'account_number' => $account_number,
+                        'is_default'     => true
+                    ]);
+                    return response()->json([
+                        'message' => 'Your email is verify You Can now Login'
+                    ]);
+                }
+            }else{
+                $verifyuser->is_email_verify = true;
+                $verifyuser->save();
+                return response()->json([
+                    'message' => 'Your Token verified now you can change your password'
+                ]);
+            }
         } else {
             return response()->json([
-                'message' => 'Your Token is not allowed'
+                'message' => 'Your Token is Invalid'
             ]);
         }
     }

@@ -87,7 +87,6 @@ class AccountController extends Controller
      */
     public function list()
     {
-        $user_id = auth()->user()->id;
         $accounts = Account::where('user_id', auth()->user()->id)->get();
         return response()->json([
             'Data'    => $accounts,
