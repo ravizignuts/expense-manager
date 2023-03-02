@@ -10,13 +10,14 @@ use Illuminate\Notifications\Notification;
 class VerifyUser extends Notification implements ShouldQueue
 {
     use Queueable;
-    public $user;
+    public $user,$is_register;
     /**
      * Create a new notification instance.
      */
-    public function __construct($user)
+    public function __construct($user,$is_register)
     {
-        $this->user = $user;
+        $this->user        = $user;
+        $this->is_register = $is_register;
     }
 
     /**
@@ -34,7 +35,7 @@ class VerifyUser extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = url('/api/auth/password/verifyuser/'.$this->user->email_verification_token);
+        $url = url('/api/auth/verifyuser/'.$this->user->email_verification_token.'/'.$this->is_register);
         return (new MailMessage)
                     ->greeting('Hello , '.$this->user->firstname)
                     ->line('Welcome to Expense Manager App .')

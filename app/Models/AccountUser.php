@@ -14,10 +14,18 @@ class AccountUser extends Model
         'last_name',
         'email'
     ];
-    public function transactions(){
-        return $this->hasMany(Transaction::class,'account_user_id');
+    /**
+     * Define has Many Relation with Transaction model
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'account_user_id');
     }
-    public function accounts(){
-        return $this->belongsTo(Account::class,'account_id');
+    /**
+     * Define Belongs to Relation with Account model
+     */
+    public function accounts()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 }

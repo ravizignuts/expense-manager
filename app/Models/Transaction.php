@@ -16,7 +16,11 @@ class Transaction extends Model
         'category',
         'amount'
     ];
-    public function user(){
-        return $this->belongsTo(AccountUser::class,'account_user_id');
+    /**
+     * Define Belongs to Relation with User model
+     */
+    public function user()
+    {
+        return $this->belongsTo(AccountUser::class, 'account_user_id');
     }
 }

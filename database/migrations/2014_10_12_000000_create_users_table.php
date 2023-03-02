@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_onbord')->default(false);
             $table->string('password');
             $table->string('email_verification_token')->nullable();
+            $table->boolean('is_email_verify')->nullable();
             $table->timestamps();
         });
     }

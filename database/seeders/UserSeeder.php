@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
                 'type'                     => 'admin',
                 'is_onbord'                => true,
                 'password'                 => Hash::make('ravi1234'),
-                'email_verification_token' => Str::random(64),
+                'email_verification_token' => null,
                 // 'account_name'   => 'Ravi Thakor',
                 // 'account_number' => '885557695091'
             ]);
@@ -39,7 +39,7 @@ class UserSeeder extends Seeder
                 'type'                     => 'admin',
                 'is_onbord'                => true,
                 'password'                 => Hash::make('dinesh12'),
-                'email_verification_token' => Str::random(64),
+                'email_verification_token' => null,
             ]);
             \App\Models\User::factory()->create([
                 'firstname'                => 'Bhawik',
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
                 'type'                     => 'admin',
                 'is_onbord'                => true,
                 'password'                 => Hash::make('bhawik12'),
-                'email_verification_token' => Str::random(64),
+                'email_verification_token' => null,
             ]);
     }
 }
