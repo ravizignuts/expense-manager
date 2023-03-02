@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('account_users', function (Blueprint $table) {
             $table->id();
-            $table->string('firstname');
-            $table->string('lastname');
+            $table->unsignedBigInteger('account_id');
+            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');;
+            $table->string('first_name');
+            $table->string('last_name');
             $table->string('email');
-            $table->enum('type',['admin','user'])->default('user');
-            $table->boolean('is_onbord')->default(false);
-            $table->string('password');
-            $table->string('email_verification_token')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('account_users');
     }
 };
