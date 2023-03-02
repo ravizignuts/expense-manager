@@ -26,41 +26,39 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::controller(AuthController::class)->prefix('auth')->group(function(){
     Route::post('register','register');
     Route::post('login','login');
-    Route::patch('verifyuser/{token}','verifyuser');
+    Route::patch('verifyuser/{token}/{is_register}','verifyuser');
     Route::prefix('password')->group(function(){
         Route::patch('change','change')->middleware('auth:sanctum');
-        Route::patch('forgotmail','forgotmail');
-        Route::get('verifyemail/{token}','verifyemail');
+        Route::patch('forgot-password-mail','sendForgotpasswordMail');
         Route::patch('reset','reset');
-
     });
-    Route::post('logout','logout')->middleware('auth:sanctum');
 });
 
 Route::middleware('auth:sanctum')->group(function(){
+    Route::post('logout',[AuthController::class,'logout']);
     Route::controller(UserController::class)->prefix('user')->group(function(){
         Route::get('profile','profile');
         Route::get('list','list');
     });
     Route::controller(AccountController::class)->prefix('account')->group(function(){
+        Route::get('list','list');
         Route::post('add','add');
         Route::put('edit','edit');
         Route::delete('delete/{id}','delete');
-        Route::get('list','list');
         Route::get('get/{id}','get');
     });
     Route::controller(AccountUserController::class)->prefix('accountuser')->group(function(){
+        Route::get('list','list');
         Route::post('add','add');
         Route::put('edit/{id}','edit');
-        Route::get('list','list');
         Route::delete('delete','delete');
         Route::get('get/{id}','get');
     });
     Route::controller(TransactionController::class)->prefix('transaction')->group(function(){
+        Route::get('list','list');
         Route::post('add','add');
         Route::put('edit/{id}','edit');
         Route::delete('delete/{id}','delete');
         Route::get('get/{id}','get');
-        Route::get('list','list');
     });
 });
