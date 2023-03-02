@@ -15,14 +15,10 @@ class Account extends Model
         'is_default'
     ];
 
-    // public static function booted(){
-    //     parent::boot();
-    //     static::creating(function (Account $account){
-
-    //         });
-    // }
     public function accountUsers(){
         return $this->hasMany(AccountUser::class,'account_id');
     }
-
+    public function users(){
+        return $this->belongsTo(User::class,'user_id');
+    }
 }
