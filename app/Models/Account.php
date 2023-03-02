@@ -14,11 +14,33 @@ class Account extends Model
         'account_number',
         'is_default'
     ];
-
-    public function accountUsers(){
-        return $this->hasMany(AccountUser::class,'account_id');
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
+    /**
+     * Define has Many Relation with AccountUser model
+     */
+    public function accountUsers()
+    {
+        return $this->hasMany(AccountUser::class, 'account_id');
     }
-    public function users(){
-        return $this->belongsTo(User::class,'user_id');
+    /**
+     * Define has Many Relation with Transaction model
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'account_id');
+    }
+    /**
+     * Define Belongs to Relation with User model
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -25,6 +25,7 @@ Clone this repository
 - Add any user in my account(by email)
 - Delete User from my account
 - Edit User in my account
+- get the list of transactions ordered by the transaction date
 - Add Transaction
 - Edit Transaction
 - Delete Transaction

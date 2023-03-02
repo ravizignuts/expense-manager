@@ -54,8 +54,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'      => 'required|email|exists:users,email',
-            'password'   => 'string|min:8|max:20'
+            'email'       => 'required|email|exists:users,email',
+            'password'    => 'string|min:8|max:20'
         ]);
         if ($validator->fails()) {
             $response = [
@@ -90,7 +90,7 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        $user = Auth::user();
+        $user = auth()->user();
         $user->currentAccessToken()->delete();
         return response()->json([
             'user'    => $user['firstname'],
@@ -130,7 +130,7 @@ class AuthController extends Controller
      * @param Request $request
      * @return Json data
      */
-    public function forgotmail(Request $request)
+    public function sendForgotpasswordMail(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email'

@@ -18,18 +18,15 @@ class AccountController extends Controller
     public function add(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'account_name' => 'required|string',
-            'account_number'  => 'required|min:10|max:10|unique:accounts,account_number',
+            'account_name' => 'required|alpha|max:20',
+            'account_number'  => 'required|min:10|max:10|numeric|unique:accounts,account_number',
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors(),
             ]);
         }
-        $user = Auth::user();
-        $request->request->add(['user_id' => $user->id]);
-        $account = Account::create($request->only('user_id', 'account_name', 'account_number'));
+        $account = Account::create($request->only('account_name', 'account_number') + ['user_id' => auth()->user()->id]);
         return response()->json([
             'message' => 'Account Created Successfully',
             'data'    => $account
@@ -44,29 +41,20 @@ class AccountController extends Controller
     public function edit(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'           => 'required|exists:accounts,id',
-            'account_name' => 'required|string|max:20',
+            'id'           => 'required|numeric|exists:accounts,id',
+            'account_name' => 'required|alpha|max:20',
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
                 'message'  => $validator->errors()
             ]);
         }
         $account = Account::findOrFail($request->id);
-        if ($account->user_id == Auth::user()->id) {
-            $account->update($request->only('account_name'));
-            return response()->json([
-                'success' => true,
-                'data'    => $account,
-                'message' => 'Account Updated Successfuly'
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'You can not make changes in this account'
-            ]);
-        }
+        $account->update($request->only('account_name'));
+        return response()->json([
+            'data'    => $account,
+            'message' => 'Account Updated Successfuly'
+        ]);
     }
     /**
      * API For Delete Account
@@ -76,10 +64,16 @@ class AccountController extends Controller
     public function delete($id)
     {
         $account = Account::findOrFail($id);
-        $account->delete();
-        return response()->json([
-            'message' => 'Account Deleted Successfully'
-        ]);
+        if ($account->is_default == true) {
+            return response()->json([
+                'message' => 'You can not delete Default Account'
+            ]);
+        } else {
+            $account->delete();
+            return response()->json([
+                'message' => 'Account Deleted Successfully'
+            ]);
+        }
     }
     /**
      * API For list of accounts for the logged in user
@@ -100,7 +94,7 @@ class AccountController extends Controller
      */
     public function get($id)
     {
-        $account = Account::with('accountUsers')->findOrFail($id);
+        $account = Account::with('transactions')->latest()->findOrFail($id);
         return response()->json([
             'Data'    => $account,
             'message' => 'All Account'

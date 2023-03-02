@@ -23,9 +23,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'firstname',
         'lastname',
         'email',
+        'type',
         'phone',
         'password',
-        'email_verification_token'
+        'email_verification_token',
+        'is_onbord',
+        'is_email_verify'
+
     ];
 
     /**
@@ -37,7 +41,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
         'email_verification_token',
-        '  is_onbord'
+        'is_onbord',
+        'is_email_verify',
+
     ];
 
     /**
@@ -46,12 +52,14 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'is_onbord'       => 'boolean',
+        'is_email_verify' => 'boolean'
     ];
     /**
      * Define has Many Relation with Account model
      */
-    public function accounts(){
-        return $this->hasMany(Account::class,'user_id','id');
+    public function accounts()
+    {
+        return $this->hasMany(Account::class, 'user_id', 'id');
     }
 }
