@@ -31,7 +31,7 @@ class AccountController extends Controller
         $request->request->add(['user_id' => $user->id]);
         $account = Account::create($request->only('user_id', 'account_name', 'account_number'));
         return response()->json([
-            'message' => true,
+            'message' => 'Account Created Successfully',
             'data'    => $account
         ]);
     }
@@ -45,7 +45,7 @@ class AccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'id'           => 'required|exists:accounts,id',
-            'account_name' => 'required|string',
+            'account_name' => 'required|string|max:20',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -75,11 +75,10 @@ class AccountController extends Controller
      */
     public function delete($id)
     {
-        $account = Account::with('accountUsers')->findOrFail($id);
+        $account = Account::findOrFail($id);
         $account->delete();
         return response()->json([
-            'Data'    => $account,
-            'message' => 'Account Deleted'
+            'message' => 'Account Deleted Successfully'
         ]);
     }
     /**
@@ -88,10 +87,10 @@ class AccountController extends Controller
      */
     public function list()
     {
-        $user_id = Auth::user()->id;
-        $account = Account::where('user_id', $user_id)->get();
+        $user_id = auth()->user()->id;
+        $accounts = Account::where('user_id', auth()->user()->id)->get();
         return response()->json([
-            'Data'    => $account,
+            'Data'    => $accounts,
             'message' => 'All Account'
         ]);
     }

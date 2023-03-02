@@ -44,8 +44,6 @@ class AuthController extends Controller
         $user->notify(new VerifyUser($user));
         //Mail::to($user)->queue(new WelcomeMail($user));
         return response()->json([
-            'success' => True,
-            'user'    => $user,
             'message' => 'Mail has been sent to your Email !Please veify your Account'
         ]);
     }
@@ -112,7 +110,6 @@ class AuthController extends Controller
                 $response = [
                     'success' => true,
                     'data'    => $success,
-                    'user'    => $user,
                     'message' => 'User Login Successfully'
                 ];
                 return response()->json($response, 200);
@@ -139,7 +136,7 @@ class AuthController extends Controller
         $user->currentAccessToken()->delete();
         return response()->json([
             'success' => true,
-            'user'    => $user,
+            'user'    => $user['firstname'],
             'message' => 'User Logout'
         ]);
     }

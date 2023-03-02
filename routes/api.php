@@ -51,9 +51,9 @@ Route::middleware('auth:sanctum')->group(function(){
     });
     Route::controller(AccountUserController::class)->prefix('accountuser')->group(function(){
         Route::post('add','add');
-        Route::post('edit/{id}','edit');
+        Route::put('edit/{id}','edit');
+        Route::get('list','list');
         Route::delete('delete','delete');
-        Route::post('list','list');
         Route::get('get/{id}','get');
     });
     Route::controller(TransactionController::class)->prefix('transaction')->group(function(){
