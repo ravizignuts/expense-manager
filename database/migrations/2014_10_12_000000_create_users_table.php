@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('type',['admin','user'])->default('user');
             $table->boolean('is_onbord')->default(false);
             $table->string('password');
-            $table->string('email_verification_token');
+            $table->string('email_verification_token')->nullable();
             $table->timestamps();
         });
     }
