@@ -52,10 +52,25 @@ class AccountUserController extends Controller
     }
     /**
      * API For Update User In Account
-     * @param Request $request
+     * @param Request $request,$id
      * @return Json data
      */
-    public function edit(Request $request){
+    public function edit(Request $request,$id){
+        $validator = Validator::make($request->all(),[
+            'first_name' => 'required|string|max:20',
+            'last_name'  => 'required|string|max:20',
+            'email'     => 'required|exists:users,email'
+        ]);
+        if($validator->fails()){
+            return response()->json([
+                'message'=>$validator->errors()
+            ]);
+        }
+        $user = AccountUser::findOrFail($id);
+        $user->update($request->only('first_name','last_name','email'));
+        return response()->json([
+            'message' => 'Account User Updated Succesfully'
+        ]);
     }
     /**
      * API For delete user account
@@ -96,7 +111,7 @@ class AccountUserController extends Controller
      * @return Json data
      */
     public function get($account_id){
-        $account = AccountUser::with('transactions')->where('account_id',$account_id);
+        $account = AccountUser::with('transactions')->where('account_id',$account_id)->get();
         return response()->json([
             'message' => 'Account Transaction',
             'account' => $account
