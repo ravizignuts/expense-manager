@@ -18,8 +18,8 @@ class AccountController extends Controller
     public function add(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'account_name' => 'required|alpha|max:20',
-            'account_number'  => 'required|min:10|max:10|numeric|unique:accounts,account_number',
+            'account_name'    => 'required|string|max:20',
+            'account_number'  => 'required|numeric|unique:accounts,account_number',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -97,7 +97,7 @@ class AccountController extends Controller
         $account = Account::with('transactions')->latest()->findOrFail($id);
         return response()->json([
             'Data'    => $account,
-            'message' => 'All Account'
+            'message' => 'Account Get Successfully'
         ]);
     }
 }

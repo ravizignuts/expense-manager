@@ -7,16 +7,17 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class VerifyUser extends Notification implements ShouldQueue
+class ForgotPassword extends Notification
 {
     use Queueable;
-    public $user;
+    public $createtoken;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct($user)
+    public function __construct($createtoken)
     {
-        $this->user = $user;
+        $this->createtoken = $createtoken;
     }
 
     /**
@@ -34,13 +35,12 @@ class VerifyUser extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = url('/api/auth/verifyuser/'.$this->user->email_verification_token);
+        $url = url('/api/auth/verifyuser/'.$this->createtoken->token);
         return (new MailMessage)
-                    ->greeting('Hello , '.$this->user->firstname)
-                    ->line('Welcome to Expense Manager App .')
-                    ->action('Verify User', $url)
-                    ->line('Thank you for using our application!')
-                    ->subject('User Verification');
+                    ->greeting('Hello')
+                    ->line('Please Verify Your Email for Forgot Password.')
+                    ->action('Verify Email',$url)
+                    ->line('Thank you for using our application!');
     }
 
     /**
