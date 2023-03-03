@@ -13,6 +13,17 @@ use Illuminate\Support\Facades\Validator;
 class AccountUserController extends Controller
 {
     /**
+     * API For list User In Account
+     * @return Json data
+     */
+    public function list(){
+        $account_users = AccountUser::get();
+        return response()->json([
+            'message'       => 'Account Users',
+            'account_users' => $account_users
+        ]);
+    }
+    /**
      * API For Add User In Account
      * @param Request $request
      * @return Json data
@@ -50,8 +61,8 @@ class AccountUserController extends Controller
      */
     public function edit(Request $request,$id){
         $validator = Validator::make($request->all(),[
-            'first_name' => 'required|string|max:10',
-            'last_name'  => 'required|string|max:10',
+            'first_name' => 'required|alpha|max:10',
+            'last_name'  => 'required|alpha|max:10',
             'email'     => 'required|exists:users,email'
         ]);
         if($validator->fails()){
@@ -90,15 +101,5 @@ class AccountUserController extends Controller
             'account' =>  $account_user
         ]);
     }
-    /**
-     * API For list User In Account
-     * @return Json data
-     */
-    public function list(){
-        $account_users = AccountUser::get();
-        return response()->json([
-            'message'       => 'Account Users',
-            'account_users' => $account_users
-        ]);
-    }
+
 }

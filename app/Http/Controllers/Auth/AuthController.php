@@ -26,8 +26,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'firstname'      => 'required|string|max:10',
-            'lastname'       => 'required|string|max:10',
+            'firstname'      => 'required|alpha|max:10',
+            'lastname'       => 'required|alpha|max:10',
             'email'          => 'required|email|unique:users,email',
             'password'       => 'required|min:8|max:12',
         ]);
@@ -154,13 +154,14 @@ class AuthController extends Controller
         }
         $user = User::where('email', $request->email)->first();
         PasswordResetToken::where('email', $request->email)->delete();
-        $token = mt_rand(100000, 999999);
+        $token = random_int(100000, 999999);
         $createtoken = PasswordResetToken::create([
             'email'      => $request->email,
             'token'      => $token,
-            'created_at' => now()
+            'created_at' => now(),
+            'expire_at'  => now()->addDays(2)
         ]);
-        $user->notify(new ForgotPassword($createtoken));
+        // $user->notify(new ForgotPassword($createtoken));
         return response()->json([
             'message' => '! Please Checke Mail'
         ]);
@@ -173,7 +174,7 @@ class AuthController extends Controller
     public function verifyPasswordResetToken(Request $request)
     {
         $validator = validator($request->all(), [
-            'token'       => 'required|exists:password_reset_tokens',
+            'token'       => 'required|exists:password_reset_tokens,token',
             'email'       => 'required|email|exists:password_reset_tokens,email',
         ], [
             'email.exists' => 'Your email is not registered for password reset'
@@ -183,14 +184,22 @@ class AuthController extends Controller
                 'message' => $validator->errors()
             ]);
         }
-        $passwordReset = PasswordResetToken::where('token', $request->token)->where('email', $request->email)->first();
-        $user = User::where('email', $passwordReset->email)->first();
-        // $passwordReset->delete();
-        $user->is_email_verify = true;
-        $user->save();
-        return response()->json([
-            'message' => 'Your Token verified now you can change your password'
-        ]);
+        $passwordReset = PasswordResetToken::where('token', $request->token)->
+        where('email', $request->email)->first();
+        if($passwordReset->expire_at > now()){
+            $user = User::where('email', $passwordReset->email)->first();
+            // $passwordReset->delete();
+            $user->is_email_verify = true;
+            $user->save();
+            return response()->json([
+                'message' => 'Your Token verified now you can change your password'
+            ]);
+        }else{
+            return response()->json([
+                'message' => 'Your Token is Expired Please Regenrate It'
+            ]);
+        }
+
     }
     /**
      * API For reset password
@@ -211,10 +220,11 @@ class AuthController extends Controller
         }
         $user = User::where('email', $request->email)->first();
         if ($user->is_email_verify == true) {
-            $user->is_email_verify = false;
+            $user->is_email_verify = null;
             $user->email_verification_token = null;
             $user->password = Hash::make($request->new_password);
             $user->save();
+
             return response()->json([
                 'message' => 'Your Password is change now you can login with new password'
             ]);
