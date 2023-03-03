@@ -25,13 +25,12 @@ class AccountUserController extends Controller
         ]);
         if($validator->fails()){
             return response()->json([
-                'success' => false,
+                'error'   => 'Validation Error',
                 'message' => $validator->errors(),
             ]);
         }
         $user = User::where('email',$request->email)->first();
         $account = Account::findOrFail($request->account_id);
-        if($account->user_id == Auth::user()->id){
             $account = $account->accountUsers()->create([
                 'first_name' => $user->firstname,
                 'last_name'  => $user->lastname,
@@ -42,13 +41,7 @@ class AccountUserController extends Controller
                 'message' => 'User Added Successfully',
                 'data'    => $account
             ]);
-        }
-        else{
-            return response()->json([
-                'success' => false,
-                'message' => 'you cant not Add inthis account',
-            ]);
-        }
+
     }
     /**
      * API For Update User In Account
@@ -57,8 +50,8 @@ class AccountUserController extends Controller
      */
     public function edit(Request $request,$id){
         $validator = Validator::make($request->all(),[
-            'first_name' => 'required|string|max:20',
-            'last_name'  => 'required|string|max:20',
+            'first_name' => 'required|string|max:10',
+            'last_name'  => 'required|string|max:10',
             'email'     => 'required|exists:users,email'
         ]);
         if($validator->fails()){
@@ -77,44 +70,24 @@ class AccountUserController extends Controller
      * @param Request $request
      * @return Json data
      */
-    public function delete(Request $request){
-        $validator = Validator::make($request->all(),[
-            'account_id' => 'required|numeric|exists:accounts,id',
-            'email'      => 'required|email|exists:account_users,email'
-        ]);
-        if($validator->fails()){
+    public function delete($id){
+            $account_user = AccountUser::findOrFail($id);
+            $account_user->delete();
             return response()->json([
-                'success' => false,
-                'message' => $validator->errors(),
-            ]);
-        }
-        $account = Account::findOrFail($request->account_id);
-        if($account->user_id == Auth::user()->id){
-            $accountuser = AccountUser::where('account_id',$request->account_id)->where('email',$request->email)->first();
-            $accountuser->delete();
-            return response()->json([
-                    'Success' => true,
-                    'message' => 'Deleted Record',
-                    'data'    => $accountuser
+                    'message' => 'Account User Deleted Successfully',
+                    'data'    => $account_user
                 ]);
-        }
-        else{
-            return response()->json([
-                'success' => false,
-                'message' => 'You can not make changes in this account'
-            ]);
-        }
     }
     /**
      * API For list User In Account
      * @param $id
      * @return Json data
      */
-    public function get($account_id){
-        $account = AccountUser::with('transactions')->where('account_id',$account_id)->get();
+    public function get($id){
+        $account_user = AccountUser::with('transactions')->findOrFail($id);
         return response()->json([
-            'message' => 'Account Transaction',
-            'account' => $account
+            'message' => 'Account User With Transaction',
+            'account' =>  $account_user
         ]);
     }
     /**
@@ -122,10 +95,10 @@ class AccountUserController extends Controller
      * @return Json data
      */
     public function list(){
-        $accounts = AccountUser::get();
+        $account_users = AccountUser::get();
         return response()->json([
             'message'       => 'Account Users',
-            'account users' => $accounts
+            'account_users' => $account_users
         ]);
     }
 }

@@ -7,7 +7,9 @@ use App\Mail\WelcomeMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\PasswordResetToken;
 use App\Notifications\ChangePassword;
+use App\Notifications\ForgotPassword;
 use App\Notifications\VerifyUser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,8 +26,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'firstname'      => 'required|string',
-            'lastname'       => 'required|string',
+            'firstname'      => 'required|string|max:10',
+            'lastname'       => 'required|string|max:10',
             'email'          => 'required|email|unique:users,email',
             'password'       => 'required|min:8|max:12',
         ]);
@@ -37,13 +39,12 @@ class AuthController extends Controller
         }
         $request['password'] = Hash::make($request->password);
         $token = Str::random(64);
-        $request->request->add(['email_verification_token' => $token]);
-        $user = User::create($request->only('firstname', 'lastname', 'email', 'phone', 'password', 'email_verification_token'));
-        $is_register = 'yes';
-        $user->notify(new VerifyUser($user,$is_register));
-        //Mail::to($user)->queue(new WelcomeMail($user));
+        $user = User::create($request->only('firstname', 'lastname', 'email', 'phone', 'password', 'email_verification_token') + ['email_verification_token' => $token]);
+        // Mail::to($user)->send(new WelcomeMail($user));
+        // $user->notify(new VerifyUser($user));
         return response()->json([
-            'message' => 'Mail has been sent to your Email !Please veify your Account'
+            'message' => 'User Created Successfully !Please veify your Account',
+            'token'   => $token
         ]);
     }
     /**
@@ -56,6 +57,9 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email'       => 'required|email|exists:users,email',
             'password'    => 'string|min:8|max:20'
+        ], [
+            'email.email'  => 'Please Enter Email in email format like abc@xyz.com',
+            'email.exists' => 'Entered Email is not exists'
         ]);
         if ($validator->fails()) {
             $response = [
@@ -98,42 +102,50 @@ class AuthController extends Controller
         ]);
     }
     /**
-     * API For change password
-     * @param Request $request
-     * @return Json data
+     * API For Email verification user Registration
+     * @param $token
+     * @return json Data
      */
-    public function change(Request $request)
+    public function verifyuser($token)
     {
-        $validator = Validator::make($request->all(), [
-            'old_password' => 'required|min:8|max:16',
-            'new_password' => 'required|confirmed|min:8|max:16',
-        ]);
-        if ($validator->fails()) {
+        $verifyuser = User::where('email_verification_token', $token)->first();
+        if (!is_null($verifyuser)) {
+            if ($verifyuser->is_onbord == true) {
+                return response()->json([
+                    'message' => 'Your email is Alreay verified'
+                ]);
+            } else {
+                $verifyuser->email_verification_token = null;
+                $verifyuser->is_onbord = true;
+                $verifyuser->save();
+                $account_name   = $verifyuser->firstname . ' ' . $verifyuser->lastname;
+                $account_number = random_int(0000000000, 9999999999);
+                $verifyuser->accounts()->create([
+                    'account_name'   => $account_name,
+                    'account_number' => $account_number,
+                    'is_default'     => true
+                ]);
+                return response()->json([
+                    'message' => 'Your email is verify You Can now Login'
+                ]);
+            }
+        } else {
             return response()->json([
-                'message' => $validator->errors()
+                'message' => 'Your Token is Invalid'
             ]);
         }
-        if (!Hash::check($request->old_password, Auth::user()->password)) {
-            return response()->json([
-                'message' => 'Password is not Matched'
-            ]);
-        }
-        User::whereId(auth()->user()->id)->update([
-            'password' => Hash::make($request->new_password)
-        ]);
-        return response()->json([
-            'Message' => 'Password updated successfully'
-        ]);
     }
     /**
-     * API For send notification for chnage forget password
-     * @param Request $request
-     * @return Json data
+     * API For send mail for forgot password
+     * @param $token
+     * @return json Data
      */
     public function sendForgotpasswordMail(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email'
+            'email'        => 'required|email|exists:users,email'
+        ], [
+            'email.email'  => 'Your email is not exist'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -141,12 +153,43 @@ class AuthController extends Controller
             ]);
         }
         $user = User::where('email', $request->email)->first();
-        $token = Str::random(64);
-        $user->update(['email_verification_token' => $token]);
-        $is_register = 'no';
-        $user->notify(new VerifyUser($user,$is_register));
+        PasswordResetToken::where('email', $request->email)->delete();
+        $token = mt_rand(100000, 999999);
+        $createtoken = PasswordResetToken::create([
+            'email'      => $request->email,
+            'token'      => $token,
+            'created_at' => now()
+        ]);
+        $user->notify(new ForgotPassword($createtoken));
         return response()->json([
-            'message' => 'Please Check your email reset password from the link'
+            'message' => '! Please Checke Mail'
+        ]);
+    }
+    /**
+     * API For Verify Password Reset Token
+     * @param $token
+     * @return json Data
+     */
+    public function verifyPasswordResetToken(Request $request)
+    {
+        $validator = validator($request->all(), [
+            'token'       => 'required|exists:password_reset_tokens',
+            'email'       => 'required|email|exists:password_reset_tokens,email',
+        ], [
+            'email.exists' => 'Your email is not registered for password reset'
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()
+            ]);
+        }
+        $passwordReset = PasswordResetToken::where('token', $request->token)->where('email', $request->email)->first();
+        $user = User::where('email', $passwordReset->email)->first();
+        // $passwordReset->delete();
+        $user->is_email_verify = true;
+        $user->save();
+        return response()->json([
+            'message' => 'Your Token verified now you can change your password'
         ]);
     }
     /**
@@ -157,8 +200,9 @@ class AuthController extends Controller
     public function reset(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'        => 'required|email|exists:users,email',
-            'new_password' => 'required|confirmed|min:8|max:16',
+            'email'                     => 'required|email|exists:users,email',
+            'new_password'              => 'required|confirmed|min:8|max:16',
+            'new_password_confirmation' => 'required|min:8|max:16'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -181,45 +225,33 @@ class AuthController extends Controller
         }
     }
     /**
-     * API For Email verification for password reset
-     * @param $token
-     * @return json Data
+     * API For change password
+     * @param Request $request
+     * @return Json data
      */
-    public function verifyuser($token,$is_register)
+    public function change(Request $request)
     {
-        $verifyuser = User::where('email_verification_token', $token)->first();
-        if (!is_null($verifyuser)) {
-            if($is_register == 'yes'){
-                if ($verifyuser->is_onbord == true) {
-                    return response()->json([
-                        'message' => 'Your email is Alreay verified'
-                    ]);
-                } else {
-                    $verifyuser->email_verification_token = null;
-                    $verifyuser->is_onbord = true;
-                    $verifyuser->save();
-                    $account_name   = $verifyuser->firstname . ' ' . $verifyuser->lastname;
-                    $account_number = random_int(0000000000, 9999999999);
-                    $verifyuser->accounts()->create([
-                        'account_name'   => $account_name,
-                        'account_number' => $account_number,
-                        'is_default'     => true
-                    ]);
-                    return response()->json([
-                        'message' => 'Your email is verify You Can now Login'
-                    ]);
-                }
-            }else{
-                $verifyuser->is_email_verify = true;
-                $verifyuser->save();
-                return response()->json([
-                    'message' => 'Your Token verified now you can change your password'
-                ]);
-            }
-        } else {
+        $validator = Validator::make($request->all(), [
+            'old_password'              => 'required|min:8|max:16',
+            'new_password'              => 'required|confirmed|min:8|max:16',
+            'new_password_confirmation' => 'required|min:8|max:16'
+        ]);
+        if ($validator->fails()) {
             return response()->json([
-                'message' => 'Your Token is Invalid'
+                'message' => $validator->errors()
             ]);
         }
+        $user = auth()->user();
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json([
+                'message' => 'Old Password is not Matched'
+            ]);
+        }
+        User::whereId($user->id)->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+        return response()->json([
+            'Message' => 'Password Changed successfully'
+        ]);
     }
 }

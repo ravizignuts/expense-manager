@@ -19,21 +19,20 @@ class TransactionController extends Controller
         $validator = Validator::make($request->all(),[
             'account_id'      => 'required|numeric|exists:accounts,id',
             'account_user_id' => 'required|numeric|exists:account_users,id',
-            'type'            => 'required|in:income,expense,transfer',
+            'type'            => 'required|string|in:income,expense,transfer',
             'date'            => 'required|date',
-            'category'        => 'required|string',
-            'amount'          => 'required|numeric'
+            'category'        => 'required|string|max:20',
+            'amount'          => 'required|numeric|between:1,99999'
         ]);
         if($validator->fails()){
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors(),
             ]);
         }
         $transaction = Transaction::create($request->only('account_id','account_user_id','type','date','category','amount'));
         return response()->json([
-            'success'     => true,
-            'transaction' => $transaction
+            'transaction' => $transaction,
+            'message'     =>'Transaction Created Successfully'
         ]);
     }
     /**
@@ -47,20 +46,19 @@ class TransactionController extends Controller
             'account_user_id' => 'required|numeric|exists:account_users,id',
             'type'            => 'required|in:income,expense,transfer',
             'date'            => 'required|date',
-            'category'        => 'required|string',
-            'amount'          => 'required|numeric'
+            'category'        => 'required|string|max:20',
+            'amount'          => 'required|numeric|between:1,99999'
         ]);
         if($validator->fails()){
             return response()->json([
-                'success' => false,
                 'message' => $validator->errors(),
             ]);
         }
         $transaction = Transaction::findOrFail($id);
         $transaction->update($request->only('account_id','account_user_id','type','date','category','amount'));
         return response()->json([
-            'success'     => true,
-            'transaction' => $transaction
+            'transaction' => $transaction,
+            'message'     =>'Transaction Updated Successfully'
         ]);
     }
     /**
@@ -72,7 +70,7 @@ class TransactionController extends Controller
         $transaction = Transaction::findOrFail($id);
         $transaction->delete();
         return response()->json([
-            'message'       => 'Deleted Transaction',
+            'message'       => 'Transaction Deleted Successfully',
             'Transaction'   => $transaction
         ]);
     }
@@ -95,7 +93,7 @@ class TransactionController extends Controller
     public function list(){
         $transaction = Transaction::get();
         return response()->json([
-            'message'       => 'All Transaction',
+            'message'       => 'Transaction Get Successfully',
             'Transaction'   => $transaction
         ]);
     }
