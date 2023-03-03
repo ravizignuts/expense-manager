@@ -26,16 +26,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::controller(AuthController::class)->prefix('auth')->group(function(){
     Route::post('register','register');
     Route::post('login','login');
-    Route::patch('verifyuser/{token}/{is_register}','verifyuser');
+    Route::post('logout',[AuthController::class,'logout'])->middleware('auth:sanctum');
+    Route::patch('verifyuser/{token}','verifyuser');
     Route::prefix('password')->group(function(){
         Route::patch('change','change')->middleware('auth:sanctum');
         Route::patch('forgot-password-mail','sendForgotpasswordMail');
+        Route::patch('verifytoken','verifyPasswordResetToken');
         Route::patch('reset','reset');
     });
 });
 
 Route::middleware('auth:sanctum')->group(function(){
-    Route::post('logout',[AuthController::class,'logout']);
     Route::controller(UserController::class)->prefix('user')->group(function(){
         Route::get('profile','profile');
         Route::get('list','list');
