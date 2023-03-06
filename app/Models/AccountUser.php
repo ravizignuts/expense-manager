@@ -24,7 +24,7 @@ class AccountUser extends Model
     /**
      * Define Belongs to Relation with Account model
      */
-    public function accounts()
+    public function account()
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
