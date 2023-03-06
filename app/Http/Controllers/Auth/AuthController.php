@@ -26,10 +26,11 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'firstname'      => 'required|alpha|max:10',
-            'lastname'       => 'required|alpha|max:10',
-            'email'          => 'required|email|unique:users,email',
-            'password'       => 'required|min:8|max:12',
+            'firstname'             => 'required|alpha|max:10',
+            'lastname'              => 'required|alpha|max:10',
+            'email'                 => 'required|email|unique:users,email',
+            'password'              => 'required|confirmed|min:8|max:12',
+            'password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
             $response = [
@@ -56,7 +57,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email'       => 'required|email|exists:users,email',
-            'password'    => 'string|min:8|max:20'
+            'password'    => 'string|min:8|max:12'
         ], [
             'email.email'  => 'Please Enter Email in email format like abc@xyz.com',
             'email.exists' => 'Entered Email is not exists'
@@ -210,8 +211,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email'                     => 'required|email|exists:users,email',
-            'new_password'              => 'required|confirmed|min:8|max:16',
-            'new_password_confirmation' => 'required|min:8|max:16'
+            'new_password'              => 'required|confirmed|min:8|max:12',
+            'new_password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -242,8 +243,8 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'old_password'              => 'required|min:8|max:16',
-            'new_password'              => 'required|confirmed|min:8|max:16',
-            'new_password_confirmation' => 'required|min:8|max:16'
+            'new_password'              => 'required|confirmed|min:8|max:12',
+            'new_password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
             return response()->json([
