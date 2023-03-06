@@ -161,7 +161,7 @@ class AuthController extends Controller
             'created_at' => now(),
             'expire_at'  => now()->addDays(2)
         ]);
-        // $user->notify(new ForgotPassword($createtoken));
+        $user->notify(new ForgotPassword($createtoken));
         return response()->json([
             'message' => '! Please Checke Mail'
         ]);
@@ -220,8 +220,7 @@ class AuthController extends Controller
         }
         $user = User::where('email', $request->email)->first();
         if ($user->is_email_verify == true) {
-            $user->is_email_verify = null;
-            $user->email_verification_token = null;
+            $user->is_email_verify = false;
             $user->password = Hash::make($request->new_password);
             $user->save();
 
