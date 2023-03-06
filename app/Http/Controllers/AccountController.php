@@ -50,11 +50,17 @@ class AccountController extends Controller
             ]);
         }
         $account = Account::findOrFail($request->id);
-        $account->update($request->only('account_name'));
+        if($account->is_default == true){
+            return response()->json([
+                'message' => 'Default Account Can not Update'
+            ]);
+        }else{
+            $account->update($request->only('account_name'));
         return response()->json([
             'data'    => $account,
             'message' => 'Account Updated Successfuly'
         ]);
+        }
     }
     /**
      * API For Delete Account

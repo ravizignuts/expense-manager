@@ -95,7 +95,7 @@ class AccountUserController extends Controller
      * @return Json data
      */
     public function get($id){
-        $account_user = AccountUser::with('transactions')->findOrFail($id);
+        $account_user = AccountUser::with('transactions','account')->findOrFail($id);
         return response()->json([
             'message' => 'Account User With Transaction',
             'account' =>  $account_user

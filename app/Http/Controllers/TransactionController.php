@@ -40,6 +40,7 @@ class TransactionController extends Controller
                 'message' => $validator->errors(),
             ]);
         }
+        // $account = Account::findOrFail();
         $transaction = Transaction::create($request->only('account_id','account_user_id','type','date','category','amount'));
         return response()->json([
             'transaction' => $transaction,
@@ -91,7 +92,7 @@ class TransactionController extends Controller
      * @return json Data
      */
     public function get($id){
-        $transaction = Transaction::with('account')->findOrFail($id);
+        $transaction = Transaction::with('accountUser','account')->findOrFail($id);
         return response()->json([
             'message'       => 'Transaction Get Successfully',
             'Transaction'   => $transaction

@@ -34,7 +34,7 @@ class Account extends Model
      */
     public function transactions()
     {
-        return $this->hasMany(Transaction::class, 'account_id')->orderBy('created_at','DESC');
+        return $this->hasMany(Transaction::class, 'account_id')->orderBy('created_at','DESC')->whereDate('created', '=', date('d-m-y'));
     }
     /**
      * Define Belongs to Relation with User model

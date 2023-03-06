@@ -16,12 +16,17 @@ class Transaction extends Model
         'category',
         'amount'
     ];
-    // protected $dateFormat = 'd/m/y';
     /**
-     * Define Belongs to Relation with User model
+     * Define Belongs to Relation with AccountUser model
      */
-    public function account()
+    public function accountUser()
     {
         return $this->belongsTo(AccountUser::class, 'account_user_id');
+    }
+    /**
+     * Define Belongs to Relation with Account model
+     */
+    public function account(){
+        return $this->belongsTo(Account::class,'account_id');
     }
 }
