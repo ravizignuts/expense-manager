@@ -19,7 +19,7 @@ class AccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'account_name'    => 'required|string|max:20',
-            'account_number'  => 'required|numeric|unique:accounts,account_number',
+            'account_number'  => 'required|numeric|digits:10|unique:accounts,account_number',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -50,11 +50,17 @@ class AccountController extends Controller
             ]);
         }
         $account = Account::findOrFail($request->id);
-        $account->update($request->only('account_name'));
+        if($account->is_default == true){
+            return response()->json([
+                'message' => 'Default Account Can not Update'
+            ]);
+        }else{
+            $account->update($request->only('account_name'));
         return response()->json([
             'data'    => $account,
             'message' => 'Account Updated Successfuly'
         ]);
+        }
     }
     /**
      * API For Delete Account

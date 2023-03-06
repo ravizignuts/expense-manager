@@ -17,10 +17,16 @@ class Transaction extends Model
         'amount'
     ];
     /**
-     * Define Belongs to Relation with User model
+     * Define Belongs to Relation with AccountUser model
      */
-    public function user()
+    public function accountUser()
     {
         return $this->belongsTo(AccountUser::class, 'account_user_id');
+    }
+    /**
+     * Define Belongs to Relation with Account model
+     */
+    public function account(){
+        return $this->belongsTo(Account::class,'account_id');
     }
 }

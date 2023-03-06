@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends Controller
 {
     /**
-     * API For Add Account
+     * API For Get Profile
      * @param Request $request
      * @return Json data
      */

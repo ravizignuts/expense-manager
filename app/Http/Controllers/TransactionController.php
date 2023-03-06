@@ -11,6 +11,17 @@ use Illuminate\Support\Facades\Validator;
 class TransactionController extends Controller
 {
     /**
+     * API for list Transaction
+     * @return json Data
+     */
+    public function list(){
+        $transactions = Transaction::get();
+        return response()->json([
+            'message'       => 'All Transaction',
+            'Transaction'   => $transactions
+        ]);
+    }
+    /**
      * API for add Transaction
      * @param Request $request
      * @return json Data
@@ -29,6 +40,7 @@ class TransactionController extends Controller
                 'message' => $validator->errors(),
             ]);
         }
+        // $account = Account::findOrFail();
         $transaction = Transaction::create($request->only('account_id','account_user_id','type','date','category','amount'));
         return response()->json([
             'transaction' => $transaction,
@@ -36,7 +48,7 @@ class TransactionController extends Controller
         ]);
     }
     /**
-     * API for add Transaction
+     * API for edit Transaction
      * @param Request $request,$id
      * @return json Data
      */
@@ -62,7 +74,7 @@ class TransactionController extends Controller
         ]);
     }
     /**
-     * API for add Transaction
+     * API for delete Transaction
      * @param $id
      * @return json Data
      */
@@ -75,23 +87,12 @@ class TransactionController extends Controller
         ]);
     }
     /**
-     * API for add Transaction
+     * API for get Transaction
      * @param $id
      * @return json Data
      */
     public function get($id){
-        $transaction = Transaction::with('user')->findOrFail($id);
-        return response()->json([
-            'message'       => 'All Transaction',
-            'Transaction'   => $transaction
-        ]);
-    }
-    /**
-     * API for list Transaction
-     * @return json Data
-     */
-    public function list(){
-        $transaction = Transaction::get();
+        $transaction = Transaction::with('accountUser','account')->findOrFail($id);
         return response()->json([
             'message'       => 'Transaction Get Successfully',
             'Transaction'   => $transaction
