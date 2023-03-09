@@ -6,10 +6,22 @@ use App\Models\User;
 use App\Models\Account;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Traits\ResponseWithStatus;
+use Illuminate\Http\ResponseTrait;
 use Illuminate\Support\Facades\Validator;
 
 class AccountController extends Controller
 {
+    use ResponseWithStatus;
+    /**
+     * API For list of accounts for the logged in user
+     * @return Json data
+     */
+    public function list()
+    {
+        $accounts = Account::where('user_id', auth()->user()->id)->get();
+        return $this->listResponse('Account',$accounts);
+    }
     /**
      * API For Add Account
      * @param Request $request
@@ -22,15 +34,10 @@ class AccountController extends Controller
             'account_number'  => 'required|numeric|digits:10|unique:accounts,account_number',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors(),
-            ]);
+            return $this->validationResponse($validator);
         }
         $account = Account::create($request->only('account_name', 'account_number') + ['user_id' => auth()->user()->id]);
-        return response()->json([
-            'message' => 'Account Created Successfully',
-            'data'    => $account
-        ]);
+        return $this->createResponse('Account',$account);
     }
 
     /**
@@ -45,9 +52,7 @@ class AccountController extends Controller
             'account_name' => 'required|alpha|max:20',
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message'  => $validator->errors()
-            ]);
+            return $this->validationResponse($validator);
         }
         $account = Account::findOrFail($request->id);
         if($account->is_default == true){
@@ -56,10 +61,7 @@ class AccountController extends Controller
             ]);
         }else{
             $account->update($request->only('account_name'));
-        return response()->json([
-            'data'    => $account,
-            'message' => 'Account Updated Successfuly'
-        ]);
+            return $this->updateResponse('Account',$account);
         }
     }
     /**
@@ -76,22 +78,8 @@ class AccountController extends Controller
             ]);
         } else {
             $account->delete();
-            return response()->json([
-                'message' => 'Account Deleted Successfully'
-            ]);
+            return $this->deleteResponse('Account',$account);
         }
-    }
-    /**
-     * API For list of accounts for the logged in user
-     * @return Json data
-     */
-    public function list()
-    {
-        $accounts = Account::where('user_id', auth()->user()->id)->get();
-        return response()->json([
-            'Data'    => $accounts,
-            'message' => 'All Account'
-        ]);
     }
     /**
      * API For get Account
@@ -100,10 +88,7 @@ class AccountController extends Controller
      */
     public function get($id)
     {
-        $account = Account::with('transactions')->latest()->findOrFail($id);
-        return response()->json([
-            'Data'    => $account,
-            'message' => 'Account Get Successfully'
-        ]);
+        $account = Account::with('transactions')->findOrFail($id);
+        return $this->getResponse('Account',$account);
     }
 }
