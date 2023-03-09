@@ -9,19 +9,18 @@ use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Traits\ResponseWithStatus;
 
 class AccountUserController extends Controller
 {
+    use ResponseWithStatus;
     /**
      * API For list User In Account
      * @return Json data
      */
     public function list(){
         $account_users = AccountUser::get();
-        return response()->json([
-            'message'       => 'Account Users',
-            'account_users' => $account_users
-        ]);
+        return $this->listResponse('Account User',$account_users);
     }
     /**
      * API For Add User In Account
@@ -34,10 +33,13 @@ class AccountUserController extends Controller
             'account_id' => 'required|numeric|exists:accounts,id',
             'email'   => 'required|email|exists:users,email'
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
+            return $this->validationResponse($validator);
+        }
+        $account_user = AccountUser::where('email',$request->email)->where('account_id',$request->account_id)->first();
+        if($account_user){
             return response()->json([
-                'error'   => 'Validation Error',
-                'message' => $validator->errors(),
+                'message' => 'User Already Added'
             ]);
         }
         $user = User::where('email',$request->email)->first();
@@ -47,12 +49,7 @@ class AccountUserController extends Controller
                 'last_name'  => $user->lastname,
                 'email'      => $user->email
             ]);
-            return response()->json([
-                'success' => true,
-                'message' => 'User Added Successfully',
-                'data'    => $account
-            ]);
-
+            return $this->createResponse('Account User',$account);
     }
     /**
      * API For Update User In Account
@@ -65,29 +62,22 @@ class AccountUserController extends Controller
             'last_name'  => 'required|alpha|max:10',
             'email'     => 'required|exists:users,email'
         ]);
-        if($validator->fails()){
-            return response()->json([
-                'message'=>$validator->errors()
-            ]);
+        if ($validator->fails()) {
+            return $this->validationResponse($validator);
         }
-        $user = AccountUser::findOrFail($id);
-        $user->update($request->only('first_name','last_name','email'));
-        return response()->json([
-            'message' => 'Account User Updated Succesfully'
-        ]);
+        $account_user = AccountUser::findOrFail($id);
+        $account_user->update($request->only('first_name','last_name','email'));
+        return $this->updateResponse('Account User',$account_user);
     }
     /**
      * API For delete user account
-     * @param Request $request
+     * @param $id
      * @return Json data
      */
     public function delete($id){
             $account_user = AccountUser::findOrFail($id);
             $account_user->delete();
-            return response()->json([
-                    'message' => 'Account User Deleted Successfully',
-                    'data'    => $account_user
-                ]);
+            return $this->deleteResponse('Account User',$account_user);
     }
     /**
      * API For list User In Account
@@ -96,10 +86,7 @@ class AccountUserController extends Controller
      */
     public function get($id){
         $account_user = AccountUser::with('transactions','account')->findOrFail($id);
-        return response()->json([
-            'message' => 'Account User With Transaction',
-            'account' =>  $account_user
-        ]);
+        return $this->getResponse('Account User',$account_user);
     }
 
 }
