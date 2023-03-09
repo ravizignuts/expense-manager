@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Http\Traits\ResponseWithStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Account extends Model
 {
-    use HasFactory, ResponseWithStatus;
+    use HasFactory, ResponseWithStatus,SoftDeletes ;
     protected $fillable = [
         'user_id',
         'account_name',
