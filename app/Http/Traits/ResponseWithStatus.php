@@ -42,6 +42,13 @@
                 'Data'    => $data,
             ]);
         }
+        public function restoreResponse($message,$data = []){
+            return response()->json([
+                'success' => true,
+                'message' => $message.' Restored Successfully',
+                'Data'    => $data,
+            ]);
+        }
 
 
     }
