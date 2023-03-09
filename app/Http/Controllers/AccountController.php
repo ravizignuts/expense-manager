@@ -75,10 +75,14 @@ class AccountController extends Controller
     {
         try {
             $account = Account::findOrFail($id);
-        } catch (Exception $e) {
-            // dd(get_class($e));
-            // dd($e->getMessage());
-            return response()->json(['message' => 'Account not Found']);
+        } catch (ModelNotFoundException $e) {
+            try{
+                $account = Account::withTrashed()->findOrFail($id);
+                $account->forceDelete();
+                return response()->json(['message' => 'Account Deleted Forcefully']);
+            }catch(ModelNotFoundException $e){
+                return response()->json(['message' => 'Account Not Found']);
+            }
         }
         if ($account->is_default == true) {
             return response()->json([
@@ -88,6 +92,16 @@ class AccountController extends Controller
             $account->delete();
             return $this->deleteResponse('Account', $account);
         }
+    }
+    /**
+     * API For Restore Account
+     * @param $id
+     * @return Json data
+     */
+    public function restore($id){
+        $account = Account::withTrashed()->findOrFail($id);
+        $account->restore();
+        return $this->restoreResponse('Account',$account);
     }
     /**
      * API For get Account
@@ -101,7 +115,7 @@ class AccountController extends Controller
         }catch(RelationNotFoundException $e){
             return response()->json(['message'=>'Relationship Not Found']);
         }catch(ModelNotFoundException $e){
-            return response()->json(['message'=>'Id Not Found']);
+            return response()->json(['message'=>'Account Not Found']);
         }
         return $this->getResponse('Account', $account);
     }

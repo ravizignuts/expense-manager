@@ -8,6 +8,8 @@ use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Traits\ResponseWithStatus;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 
 class TransactionController extends Controller
@@ -18,17 +20,19 @@ class TransactionController extends Controller
      * API for list Transaction
      * @return json Data
      */
-    public function list(){
+    public function list()
+    {
         $transactions = Transaction::get();
-        return $this->listResponse('Transactions',$transactions);
+        return $this->listResponse('Transactions', $transactions);
     }
     /**
      * API for add Transaction
      * @param Request $request
      * @return json Data
      */
-    public function add(Request $request){
-        $validator = Validator::make($request->all(),[
+    public function add(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'account_id'      => 'required|numeric|exists:accounts,id',
             'account_user_id' => 'required|numeric|exists:account_users,id',
             'type'            => 'required|string|in:income,expense,transfer',
@@ -39,16 +43,17 @@ class TransactionController extends Controller
         if ($validator->fails()) {
             return $this->validationResponse($validator);
         }
-        $transaction = Transaction::create($request->only('account_id','account_user_id','type','date','category','amount'));
-        return $this->createResponse('Transaction',$transaction);
+        $transaction = Transaction::create($request->only('account_id', 'account_user_id', 'type', 'date', 'category', 'amount'));
+        return $this->createResponse('Transaction', $transaction);
     }
     /**
      * API for edit Transaction
      * @param Request $request,$id
      * @return json Data
      */
-    public function edit(Request $request,$id){
-        $validator = Validator::make($request->all(),[
+    public function edit(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
             'account_id'      => 'required|numeric|exists:accounts,id',
             'account_user_id' => 'required|numeric|exists:account_users,id',
             'type'            => 'required|in:income,expense,transfer',
@@ -60,26 +65,48 @@ class TransactionController extends Controller
             return $this->validationResponse($validator);
         }
         $transaction = Transaction::findOrFail($id);
-        $transaction->update($request->only('account_id','account_user_id','type','date','category','amount'));
-        return $this->updateResponse('Transaction',$transaction);
+        $transaction->update($request->only('account_id', 'account_user_id', 'type', 'date', 'category', 'amount'));
+        return $this->updateResponse('Transaction', $transaction);
     }
     /**
      * API for delete Transaction
      * @param $id
      * @return json Data
      */
-    public function delete($id){
-        $transaction = Transaction::findOrFail($id);
-        $transaction->delete();
-        return $this->deleteResponse('Transaction',$transaction);
+    public function delete($id)
+    {   try{
+            $transaction = Transaction::findOrFail($id);
+            $transaction->delete();
+            return $this->deleteResponse('Transaction', $transaction);
+        }catch(ModelNotFoundException $e){
+            try{
+                $transaction = Transaction::withTrashed()->findOrFail($id);
+                $transaction->forceDelete();
+                return response()->json(['message' => 'Transaction Deleted Successfully']);
+            }catch(ModelNotFoundException $e){
+                return response()->json(['message' => 'Transaction Not Found']);
+            }
+        }
+    }
+    /**
+     * API for Restore Transaction
+     * @param $id
+     * @return json Data
+     */
+    public function restore($id)
+    {
+        $transaction = Transaction::withTrashed()->findOrFail($id);
+        $transaction->restore();
+        return $this->restoreResponse('Transaction', $transaction);
     }
     /**
      * API for get Transaction
      * @param $id
      * @return json Data
      */
-    public function get($id){
-        $transaction = Transaction::with('accountUser','account')->findOrFail($id);
-        return $this->getResponse('Transaction',$transaction);
+    public function get($id)
+    {
+        $transaction = Transaction::with('accountUser', 'account')->findOrFail($id);
+        return $this->getResponse('Transaction', $transaction);
     }
 }
