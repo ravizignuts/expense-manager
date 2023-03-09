@@ -52,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('list','list');
         Route::post('add','add');
         Route::put('edit/{id}','edit');
-        Route::delete('delete','delete');
+        Route::delete('delete/{id}','delete');
         Route::get('get/{id}','get');
     });
     Route::controller(TransactionController::class)->prefix('transaction')->group(function(){

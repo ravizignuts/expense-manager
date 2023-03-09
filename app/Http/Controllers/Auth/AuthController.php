@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Traits\ResponseWithStatus;
 
 class AuthController extends Controller
 {
+    use ResponseWithStatus;
     /**
      * API For Register User
      * @param Request $request
@@ -33,10 +35,7 @@ class AuthController extends Controller
             'password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
-            $response = [
-                'message' => $validator->errors(),
-            ];
-            return response()->json($response, 400);
+            return $this->validationResponse($validator);
         }
         $request['password'] = Hash::make($request->password);
         $token = Str::random(64);
@@ -63,10 +62,7 @@ class AuthController extends Controller
             'email.exists' => 'Entered Email is not exists'
         ]);
         if ($validator->fails()) {
-            $response = [
-                'message' => $validator->errors(),
-            ];
-            return response()->json($response, 400);
+            return $this->validationResponse($validator);
         }
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             if (Auth::user()->is_onbord == true) {
@@ -149,9 +145,7 @@ class AuthController extends Controller
             'email.email'  => 'Your email is not exist'
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors()
-            ]);
+            return $this->validationResponse($validator);
         }
         $user = User::where('email', $request->email)->first();
         PasswordResetToken::where('email', $request->email)->delete();
@@ -181,9 +175,7 @@ class AuthController extends Controller
             'email.exists' => 'Your email is not registered for password reset'
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors()
-            ]);
+            return $this->validationResponse($validator);
         }
         $passwordReset = PasswordResetToken::where('token', $request->token)->
         where('email', $request->email)->first();
@@ -215,9 +207,7 @@ class AuthController extends Controller
             'new_password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors()
-            ]);
+            return $this->validationResponse($validator);
         }
         $user = User::where('email', $request->email)->first();
         if ($user->is_email_verify == true) {
@@ -247,9 +237,7 @@ class AuthController extends Controller
             'new_password_confirmation' => 'required|min:8|max:12'
         ]);
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors()
-            ]);
+            return $this->validationResponse($validator);
         }
         $user = auth()->user();
         if (!Hash::check($request->old_password, $user->password)) {

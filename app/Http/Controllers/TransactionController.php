@@ -7,19 +7,20 @@ use App\Models\Transaction;
 use Illuminate\Http\Client\ResponseSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Traits\ResponseWithStatus;
+
 
 class TransactionController extends Controller
 {
+    use ResponseWithStatus;
+
     /**
      * API for list Transaction
      * @return json Data
      */
     public function list(){
         $transactions = Transaction::get();
-        return response()->json([
-            'message'       => 'All Transaction',
-            'Transaction'   => $transactions
-        ]);
+        return $this->listResponse('Transactions',$transactions);
     }
     /**
      * API for add Transaction
@@ -35,17 +36,11 @@ class TransactionController extends Controller
             'category'        => 'required|string|max:20',
             'amount'          => 'required|numeric|between:1,99999'
         ]);
-        if($validator->fails()){
-            return response()->json([
-                'message' => $validator->errors(),
-            ]);
+        if ($validator->fails()) {
+            return $this->validationResponse($validator);
         }
-        // $account = Account::findOrFail();
         $transaction = Transaction::create($request->only('account_id','account_user_id','type','date','category','amount'));
-        return response()->json([
-            'transaction' => $transaction,
-            'message'     =>'Transaction Created Successfully'
-        ]);
+        return $this->createResponse('Transaction',$transaction);
     }
     /**
      * API for edit Transaction
@@ -61,17 +56,12 @@ class TransactionController extends Controller
             'category'        => 'required|string|max:20',
             'amount'          => 'required|numeric|between:1,99999'
         ]);
-        if($validator->fails()){
-            return response()->json([
-                'message' => $validator->errors(),
-            ]);
+        if ($validator->fails()) {
+            return $this->validationResponse($validator);
         }
         $transaction = Transaction::findOrFail($id);
         $transaction->update($request->only('account_id','account_user_id','type','date','category','amount'));
-        return response()->json([
-            'transaction' => $transaction,
-            'message'     =>'Transaction Updated Successfully'
-        ]);
+        return $this->updateResponse('Transaction',$transaction);
     }
     /**
      * API for delete Transaction
@@ -81,10 +71,7 @@ class TransactionController extends Controller
     public function delete($id){
         $transaction = Transaction::findOrFail($id);
         $transaction->delete();
-        return response()->json([
-            'message'       => 'Transaction Deleted Successfully',
-            'Transaction'   => $transaction
-        ]);
+        return $this->deleteResponse('Transaction',$transaction);
     }
     /**
      * API for get Transaction
@@ -93,9 +80,6 @@ class TransactionController extends Controller
      */
     public function get($id){
         $transaction = Transaction::with('accountUser','account')->findOrFail($id);
-        return response()->json([
-            'message'       => 'Transaction Get Successfully',
-            'Transaction'   => $transaction
-        ]);
+        return $this->getResponse('Transaction',$transaction);
     }
 }

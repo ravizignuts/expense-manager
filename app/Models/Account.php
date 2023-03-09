@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Http\Traits\ResponseWithStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model
 {
-    use HasFactory;
+    use HasFactory, ResponseWithStatus;
     protected $fillable = [
         'user_id',
         'account_name',
         'account_number',
+        'is_default'
+    ];
+    protected $hidden = [
         'is_default'
     ];
     /**
@@ -34,7 +38,7 @@ class Account extends Model
      */
     public function transactions()
     {
-        return $this->hasMany(Transaction::class, 'account_id')->orderBy('created_at','DESC')->whereDate('created', '=', date('d-m-y'));
+        return $this->hasMany(Transaction::class, 'account_id')->orderBy('date','DESC');
     }
     /**
      * Define Belongs to Relation with User model
