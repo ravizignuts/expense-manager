@@ -20,10 +20,13 @@ class AccountUserController extends Controller
      * API For list User In Account
      * @return Json data
      */
-    public function list()
+    public function list(Request $request)
     {
-        $account_users = AccountUser::get();
-        return $this->listResponse('Account User', $account_users);
+        $account_users = AccountUser::query();
+        $per_page      = $request->per_page;
+        $page_number   = $request->page_number;
+        $account_users = $account_users->skip($per_page * ($page_number-1))->take($per_page);
+        return $this->listResponse('Account User',$account_users->get());
     }
     /**
      * API For Add User In Account

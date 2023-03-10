@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('list','list');
     });
     Route::controller(AccountController::class)->prefix('account')->group(function(){
+        Route::post('list-all','listAll');
         Route::get('list','list');
         Route::post('add','add');
         Route::put('edit','edit');
@@ -50,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('restore/{id}','restore');
     });
     Route::controller(AccountUserController::class)->prefix('accountuser')->group(function(){
-        Route::get('list','list');
+        Route::post('list','list');
         Route::post('add','add');
         Route::put('edit/{id}','edit');
         Route::delete('delete/{id}','delete');
@@ -58,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('restore/{id}','restore');
     });
     Route::controller(TransactionController::class)->prefix('transaction')->group(function(){
-        Route::get('list','list');
+        Route::post('list','list');
         Route::post('add','add');
         Route::put('edit/{id}','edit');
         Route::delete('delete/{id}','delete');

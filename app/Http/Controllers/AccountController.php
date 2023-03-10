@@ -16,12 +16,24 @@ class AccountController extends Controller
 {
     use ResponseWithStatus;
     /**
+     * API For list All accounts
+     * @param Request $request
+     * @return Json dataa
+     */
+    public function listAll(Request $request){
+        $accounts = Account::query();
+        $per_page    = $request->per_page;
+        $page_number = $request->page_number;
+        $accounts = $accounts->skip($per_page * ($page_number-1))->take($per_page);
+        return $this->listResponse('Accounts',$accounts->get());
+    }
+    /**
      * API For list of accounts for the logged in user
      * @return Json data
      */
     public function list()
     {
-        $accounts = Account::where('user_id', auth()->user()->id)->get();
+        $accounts    = Account::where('user_id', auth()->user()->id)->get();
         return $this->listResponse('Account', $accounts);
     }
     /**
@@ -110,13 +122,7 @@ class AccountController extends Controller
      */
     public function get($id)
     {
-        try{
-            $account = Account::with('transactions')->findOrFail($id);
-        }catch(RelationNotFoundException $e){
-            return response()->json(['message'=>'Relationship Not Found']);
-        }catch(ModelNotFoundException $e){
-            return response()->json(['message'=>'Account Not Found']);
-        }
+        $account = Account::with('transactions','user','accountUsers')->findOrFail($id);
         return $this->getResponse('Account', $account);
     }
 }
