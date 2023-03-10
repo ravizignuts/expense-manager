@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class TransactionController extends Controller
 {
     use ResponseWithStatus;
-
     /**
      * API for list Transaction
      * @param Request $request
@@ -23,7 +22,7 @@ class TransactionController extends Controller
      */
     public function list(Request $request)
     {
-        $transactions = Transaction::query();
+        $transactions = Transaction::query()->orderBy('date','DESC');
         $per_page     = $request->per_page;
         $page_number  = $request->page_number;
         $transactions = $transactions->skip($per_page * ($page_number - 1))->take($per_page);

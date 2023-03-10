@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::controller(UserController::class)->prefix('user')->group(function(){
         Route::get('profile','profile');
         Route::get('list','list');
+        Route::delete('delete/{id}','delete')->middleware('check-access');
     });
     Route::controller(AccountController::class)->prefix('account')->group(function(){
         Route::post('list-all','listAll');
