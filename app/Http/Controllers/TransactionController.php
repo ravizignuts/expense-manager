@@ -18,12 +18,16 @@ class TransactionController extends Controller
 
     /**
      * API for list Transaction
+     * @param Request $request
      * @return json Data
      */
-    public function list()
+    public function list(Request $request)
     {
-        $transactions = Transaction::get();
-        return $this->listResponse('Transactions', $transactions);
+        $transactions = Transaction::query();
+        $per_page     = $request->per_page;
+        $page_number  = $request->page_number;
+        $transactions = $transactions->skip($per_page * ($page_number - 1))->take($per_page);
+        return $this->listResponse('Transactions', $transactions->get());
     }
     /**
      * API for add Transaction
